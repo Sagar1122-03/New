@@ -9,68 +9,75 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import accuracy_score, classification_report, confusion_matrix
 
-# Streamlit Title
-st.title("Telco Customer Churn Prediction using Logistic Regression")
+# Streamlit Page Configuration
+st.set_page_config(page_title="Telco Churn Predictor", layout="wide")
 
-# Upload CSV
-uploaded_file = st.file_uploader("Telco.csv", type=["csv"])
+# Sidebar Navigation
+st.sidebar.title("Navigation")
+page = st.sidebar.radio("Go to", ["Upload & Overview", "Preprocessing", "Model Evaluation", "Visualization"])
 
+# Title
+st.title("Telco Customer Churn Prediction")
+
+# Upload File
+uploaded_file = 
+
+# Load and process data
 if uploaded_file is not None:
     df = pd.read_csv(uploaded_file)
-
-    st.subheader("Raw Data")
-    st.write(df.head())
-
-    # Data Preprocessing
     df['TotalCharges'] = pd.to_numeric(df['TotalCharges'], errors='coerce')
     df.dropna(inplace=True)
     df.drop('customerID', axis=1, inplace=True)
     df['Churn'] = df['Churn'].map({'Yes': 1, 'No': 0})
     df = pd.get_dummies(df, drop_first=True)
 
-    # Feature and Target Split
+    # Split and scale
     X = df.drop("Churn", axis=1)
     y = df["Churn"]
-
-    # Feature Scaling
     scaler = StandardScaler()
     X_scaled = scaler.fit_transform(X)
-
-    # Train-Test Split
     X_train, X_test, y_train, y_test = train_test_split(X_scaled, y, test_size=0.2, random_state=42)
 
-    # Model Training
+    # Train model
     model = LogisticRegression(max_iter=1000)
     model.fit(X_train, y_train)
-
-    # Prediction
     y_pred = model.predict(X_test)
-
-    # Evaluation
     accuracy = accuracy_score(y_test, y_pred)
     report = classification_report(y_test, y_pred, output_dict=True)
     cm = confusion_matrix(y_test, y_pred)
 
-    st.subheader("Model Evaluation")
-    st.write(f"Accuracy: {accuracy:.4f}")
-    st.write("Classification Report:")
-    st.dataframe(pd.DataFrame(report).transpose())
+    # Page-specific views
+    if page == "Upload & Overview":
+        st.subheader("Raw Data Preview")
+        st.write(df.head())
+        st.success("Data loaded and processed successfully!")
 
-    # Confusion Matrix Plot
-    st.subheader("Confusion Matrix")
-    fig, ax = plt.subplots()
-    sns.heatmap(cm, annot=True, fmt='d', cmap='Blues',
-                xticklabels=['No Churn', 'Churn'],
-                yticklabels=['No Churn', 'Churn'], ax=ax)
-    plt.xlabel('Predicted')
-    plt.ylabel('Actual')
-    st.pyplot(fig)
+    elif page == "Preprocessing":
+        st.subheader("Data After Preprocessing")
+        st.write(df.describe())
+        st.write("Columns after encoding:")
+        st.write(df.columns.tolist())
 
-    # Churn Distribution
-    st.subheader("Churn Distribution")
-    fig2, ax2 = plt.subplots()
-    sns.countplot(x="Churn", data=df, ax=ax2)
-    st.pyplot(fig2)
+    elif page == "Model Evaluation":
+        st.subheader("Model Accuracy")
+        st.write(f"*Accuracy:* {accuracy:.4f}")
+        st.subheader("Classification Report")
+        st.dataframe(pd.DataFrame(report).transpose())
+
+        st.subheader("Confusion Matrix")
+        fig, ax = plt.subplots()
+        sns.heatmap(cm, annot=True, fmt='d', cmap='Blues',
+                    xticklabels=['No Churn', 'Churn'],
+                    yticklabels=['No Churn', 'Churn'], ax=ax)
+        plt.xlabel("Predicted")
+        plt.ylabel("Actual")
+        st.pyplot(fig)
+
+    elif page == "Visualization":
+        st.subheader("Churn Distribution")
+        fig2, ax2 = plt.subplots()
+        sns.countplot(x="Churn", data=df, ax=ax2)
+        st.pyplot(fig2)
 
 else:
-    st.info("Please upload a Telco CSV file to continue.")
+    st.warning("Please upload a Telco CSV file from the sidebar to continue.")
