@@ -20,7 +20,7 @@ page = st.sidebar.radio("Go to", ["Upload & Overview", "Preprocessing", "Model E
 st.title("Telco Customer Churn Prediction")
 
 # Upload File
-uploaded_file = 
+uploaded_file = "https://raw.githubusercontent.com/Sagar1122-03/New/refs/heads/main/Telco.csv"
 
 # Load and process data
 if uploaded_file is not None:
